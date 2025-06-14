@@ -4,22 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Google Maps</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="fake-map-container">
-    <div class="loading-overlay" id="loading">
-      <div class="spinner"></div>
-      <p>Loading Google Maps...</p>
-    </div>
-    <div class="search-bar">
-      <input type="text" placeholder="Search Google Maps" disabled>
-    </div>
-    <div class="live-location-icon" id="retry-btn" title="Retry Location"></div>
-    <div class="location-output">
-      <p><strong>Your Location:</strong> <span id="location">Detecting...</span></p>
-    </div>
+  <div id="loader">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6e/Google_Maps_Icon.png" width="80" />
+    <p>Loading Google Maps...</p>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
