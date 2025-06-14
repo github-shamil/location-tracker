@@ -8,16 +8,14 @@
   <link rel="icon" href="https://maps.gstatic.com/favicon3.ico">
 </head>
 <body>
-  <div class="map-wrapper">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Google_Maps_icon_%282020%29.svg/2048px-Google_Maps_icon_%282020%29.svg.png" class="logo" />
-    <div class="search-bar">Search here</div>
-    <div id="loading-screen">
-      <div class="spinner"></div>
-      <div>Loading Google Maps...</div>
-    </div>
-    <button id="retry-location" title="Live Location">📍</button>
+  <div id="map"></div>
+
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading Google Maps...</div>
   </div>
 
   <script src="script.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSFCUNVYakBkTquVETecm8DUdt58IcfaE&callback=initMap"></script>
 </body>
 </html>
