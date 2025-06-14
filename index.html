@@ -7,17 +7,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="map-container">
-    <img src="loading-map.png" class="map-img" alt="Map" />
-    <div class="top-bar">
-      <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_92x30dp.png" class="logo" />
-      <input type="text" class="search-box" placeholder="Find a place" />
-    </div>
-    <div class="location-button" onclick="retryGPS()">
-      <div class="circle"></div>
-    </div>
+  <div class="fake-map-container">
     <div class="loading-overlay" id="loading">
       <div class="spinner"></div>
+      <p>Loading Google Maps...</p>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search Google Maps" disabled>
+    </div>
+    <div class="live-location-icon" id="retry-btn" title="Retry Location"></div>
+    <div class="location-output">
+      <p><strong>Your Location:</strong> <span id="location">Detecting...</span></p>
     </div>
   </div>
   <script src="script.js"></script>
