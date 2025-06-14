@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Google Maps</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="map-container">
+    <img src="loading-map.png" class="map-img" alt="Map" />
+    <div class="top-bar">
+      <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_92x30dp.png" class="logo" />
+      <input type="text" class="search-box" placeholder="Find a place" />
+    </div>
+    <div class="location-button" onclick="retryGPS()">
+      <div class="circle"></div>
+    </div>
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
