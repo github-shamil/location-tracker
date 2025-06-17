@@ -36,9 +36,7 @@ body, html {
 }
 
 #retry-location {
-  position: fixed;
-  bottom: 20%;
-  right: 20px;
+  margin-top: 10px;
   background: white;
   border: 2px solid #4285F4;
   border-radius: 50%;
