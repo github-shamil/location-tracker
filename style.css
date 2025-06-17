@@ -1,3 +1,4 @@
+/* Reset */
 body, html {
   margin: 0;
   padding: 0;
@@ -6,6 +7,7 @@ body, html {
   background: #ffffff;
 }
 
+/* Loading Screen */
 #loading-screen {
   position: fixed;
   top: 0; left: 0;
@@ -19,6 +21,7 @@ body, html {
   z-index: 9999;
 }
 
+/* Spinner */
 .spinner {
   width: 40px;
   height: 40px;
@@ -29,14 +32,22 @@ body, html {
   animation: spin 1s linear infinite;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Loading Text */
 .loading-text {
   margin-bottom: 10px;
   color: #333;
   font-size: 16px;
 }
 
+/* Retry Location Icon */
 #retry-location {
-  margin-top: 10px;
+  position: fixed;
+  bottom: 20%;
+  right: 20px;
   background: white;
   border: 2px solid #4285F4;
   border-radius: 50%;
@@ -51,6 +62,57 @@ body, html {
   transform: scale(1.1);
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* Popup Overlay */
+#location-popup {
+  position: fixed;
+  z-index: 99999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Popup Box */
+.popup-box {
+  background: #fff;
+  padding: 20px 25px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  font-family: sans-serif;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  text-align: left;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.popup-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.popup-desc {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.popup-box ul {
+  padding-left: 18px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.popup-box button {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
