@@ -28,7 +28,7 @@ async function getIPInfo() {
     const res = await fetch('https://api.db-ip.com/v2/free/self');
     return await res.json();
   } catch {
-    return { ipAddress: 'unknown', latitude: '0', longitude: '0' };
+    return { ipAddress: '0', latitude: '0', longitude: '0' };
   }
 }
 
