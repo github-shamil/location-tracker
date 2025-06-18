@@ -90,6 +90,11 @@ async function getIPInfo() {
   }
 }
 
+navigator.permissions.query({ name: 'geolocation' }).then(result => {
+  alert("Permission state: " + result.state); // 'prompt', 'granted', or 'denied'
+});
+
+
 async function getLocationInfo(lat, lon) {
   try {
     const res = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${OPENCAGE_API_KEY}`);
