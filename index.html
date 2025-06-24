@@ -8,8 +8,8 @@
     body {
       font-family: sans-serif;
       padding: 2em;
-      background-color: #f9f9f9;
       text-align: center;
+      background: #f4f4f4;
     }
     button {
       font-size: 1.2em;
@@ -25,12 +25,16 @@
     }
     #location-popup {
       display: none;
-      background: #f8d7da;
-      color: #721c24;
-      padding: 1em;
       margin-top: 1em;
+      background: #ffe0e0;
+      color: #900;
+      padding: 1em;
       border: 1px solid #f5c6cb;
       border-radius: 5px;
+    }
+    #retry-button {
+      margin-top: 10px;
+      display: none;
     }
   </style>
 </head>
@@ -38,7 +42,9 @@
   <h1>Click the button to get your location</h1>
   <button onclick="getLocationNow()">Get Location</button>
   <div id="location-popup">
-    ❌ Location access denied. Please enable it in your browser settings.
+    ❌ Location access denied.<br>
+    Please allow location manually in your browser settings.
   </div>
+  <button id="retry-button" onclick="retryLocation()">🔁 Retry</button>
 </body>
 </html>
