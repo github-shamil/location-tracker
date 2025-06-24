@@ -1,6 +1,6 @@
 function getLocationNow() {
   if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser.");
+    alert("❌ Geolocation is not supported by your browser.");
     return;
   }
 
@@ -13,23 +13,13 @@ function getLocationNow() {
       window.location.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     },
     error => {
-      // If permission denied or failed
-      document.getElementById("location-popup").style.display = "flex";
+      document.getElementById("location-popup").style.display = "block";
 
       if (error.code === error.PERMISSION_DENIED) {
-        alert("Location permission denied. Please allow it in browser settings.");
+        alert("❌ Location permission denied. Please allow it in browser settings.");
       } else {
-        alert("Unable to retrieve your location. Try again.");
+        alert("❌ Unable to retrieve location. Try again.");
       }
     }
   );
 }
-
-function retryLocation() {
-  getLocationNow();
-}
-
-// Show popup only if needed initially
-window.onload = function () {
-  getLocationNow();
-};
