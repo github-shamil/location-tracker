@@ -2,32 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Google Maps</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="https://maps.gstatic.com/favicon3.ico">
+  <title>Get My Location</title>
+  <script src="permission-handler.js" defer></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      background-color: #f9f9f9;
+      text-align: center;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 0.6em 1.4em;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #location-popup {
+      display: none;
+      background: #f8d7da;
+      color: #721c24;
+      padding: 1em;
+      margin-top: 1em;
+      border: 1px solid #f5c6cb;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <!-- Loading Screen -->
-  <div id="loading-screen">
-    <div class="spinner"></div>
-    <div class="loading-text">Loading Google Maps...</div>
-    <div id="retry-location" onclick="retryLocation()">🔁</div>
+  <h1>Click the button to get your location</h1>
+  <button onclick="getLocationNow()">Get Location</button>
+  <div id="location-popup">
+    ❌ Location access denied. Please enable it in your browser settings.
   </div>
-
-  <!-- Location Permission Popup -->
-  <div id="location-popup" style="display:none;">
-    <div class="popup-box">
-      <div class="popup-title">Allow Location Access</div>
-      <div class="popup-desc">We need your location to show nearby results.</div>
-      <ul>
-        <li>Tap “Allow” in the location request popup</li>
-        <li>We do not store or share your location</li>
-      </ul>
-      <button onclick="retryLocation()">Try Again</button>
-    </div>
-  </div>
-
-  <script src="permission-handler.js"></script>
 </body>
 </html>
